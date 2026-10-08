@@ -4,7 +4,7 @@ Next.js App Router + TypeScript + Tailwind CSS + Supabase 기본 프로젝트.
 
 ## 시작하기
 
-Node.js 22 이상을 사용합니다.
+Node.js 22.13.0 이상을 사용합니다.
 
 ```sh
 npm ci

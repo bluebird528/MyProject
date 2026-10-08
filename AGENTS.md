@@ -5,7 +5,7 @@
 - Next.js App Router, React, TypeScript (strict)
 - Tailwind CSS, ESLint, Vitest
 - Supabase: `@supabase/supabase-js`, `@supabase/ssr`
-- Node.js 22 이상, npm과 `package-lock.json` 사용
+- Node.js 22.13.0 이상, npm과 `package-lock.json` 사용
 
 ## 명령어
 
