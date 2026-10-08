@@ -43,11 +43,15 @@ npm run build
 
 1. Supabase 프로젝트에 `supabase/migrations/20261008000000_create_notes.sql`을 적용합니다. 연결된 Supabase CLI에서 `supabase db push`를 실행하거나 SQL Editor에서 실행할 수 있습니다. 이 PR은 원격 DB에 직접 적용하지 않습니다.
 2. Authentication에서 Email 제공자를 활성화하고 Site URL을 앱 주소로 설정합니다.
-3. 이메일 확인을 사용하는 경우 Confirm signup 이메일 템플릿 링크를 다음으로 설정합니다.
+3. Authentication의 Redirect URLs에 운영 주소의 `/auth/confirm`, Preview 주소(`https://*-bluebird528.vercel.app/**`), `http://localhost:3000/auth/confirm`을 허용합니다. 이 프로젝트의 운영·Preview·localhost 허용 목록은 이미 등록되어 있습니다.
+
+Confirm signup의 기본 이메일 템플릿(`{{ .ConfirmationURL }}`)을 그대로 사용할 수 있으며 템플릿 수정은 필요하지 않습니다. 가입 요청의 헤더에서 운영·Preview·로컬 주소를 구해 `emailRedirectTo`를 해당 주소의 `/auth/confirm`으로 설정합니다. 주소가 없거나 잘못되면 가입 요청을 중단하고 오류를 표시합니다. Supabase가 이메일을 확인한 뒤 `?code=`를 붙여 리다이렉트하면 서버에서 `exchangeCodeForSession`으로 세션을 생성합니다. 이 PKCE 흐름은 가입한 브라우저의 쿠키가 필요하므로 같은 브라우저에서 확인 링크를 여세요.
+
+기존에 아래와 같이 수정한 `token_hash` 템플릿도 계속 지원합니다.
 
 ```html
 <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">이메일 확인</a>
 ```
 
-확인 완료 시 `/notes`로 이동합니다. 이메일 확인이 꺼져 있으면 가입 즉시 이동합니다.
+확인 완료 시 `/notes`, 실패 시 `/login?error=confirmation`으로 이동합니다. `next` 등 외부 이동 파라미터는 사용하지 않습니다. 이메일 확인이 꺼져 있으면 가입 즉시 이동합니다.
 `notes`는 인증된 사용자에게 SELECT/INSERT/DELETE만 허용하며 각 정책은 `auth.uid() = user_id`를 검사합니다. UPDATE와 익명 접근은 허용하지 않습니다. 사용자 삭제 시 해당 메모도 삭제됩니다.
