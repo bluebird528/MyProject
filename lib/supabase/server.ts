@@ -26,8 +26,7 @@ export async function createClient() {
             cookieStore.set(name, value, options);
           });
         } catch {
-          // Server Components cannot write cookies. Before adding authentication,
-          // add a Next.js proxy to refresh sessions and persist response cookies.
+          // Server Components cannot write cookies; proxy.ts persists refreshed sessions.
         }
       },
     },
