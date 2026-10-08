@@ -11,11 +11,13 @@ async function confirmationUrl(): Promise<string | null> {
     const requestHeaders = await headers();
     const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
     if (!host || /[\s,\\/@?#]/.test(host)) return null;
-    const protocol = requestHeaders.get("x-forwarded-proto") ??
-      (host === "localhost" || host.startsWith("localhost:") ? "http" : "https");
+    const forwardedProtocol = requestHeaders.get("x-forwarded-proto");
+    const protocol = forwardedProtocol ??
+      (new URL(`https://${host}`).hostname === "localhost" ? "http" : "https");
     if (protocol !== "http" && protocol !== "https") return null;
     const origin = new URL(`${protocol}://${host}`);
-    if (origin.host !== host || origin.username || origin.password) return null;
+    if (!origin.hostname || origin.username || origin.password ||
+      origin.pathname !== "/" || origin.search || origin.hash) return null;
     return `${origin.origin}/auth/confirm`;
   } catch {
     return null;

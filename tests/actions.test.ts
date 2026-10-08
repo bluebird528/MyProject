@@ -57,6 +57,13 @@ describe("email authentication", () => {
     [{ host: "localhost:3000", "x-forwarded-proto": "http" }, "http://localhost:3000/auth/confirm"],
     [{ host: "localhost:3000" }, "http://localhost:3000/auth/confirm"],
     [{ host: "app.example" }, "https://app.example/auth/confirm"],
+    [{ host: "internal:3000", "x-forwarded-host": "app.example:443", "x-forwarded-proto": "https" }, "https://app.example/auth/confirm"],
+    [{ host: "internal:3000", "x-forwarded-host": "localhost:80", "x-forwarded-proto": "http" }, "http://localhost/auth/confirm"],
+    [{ host: "internal:3000", "x-forwarded-host": "APP.Example", "x-forwarded-proto": "https" }, "https://app.example/auth/confirm"],
+    [{ host: "APP.Example:443", "x-forwarded-proto": "https" }, "https://app.example/auth/confirm"],
+    [{ host: "LOCALHOST:80", "x-forwarded-proto": "http" }, "http://localhost/auth/confirm"],
+    [{ host: "LOCALHOST:3000" }, "http://localhost:3000/auth/confirm"],
+    [{ host: "APP.Example:8443", "x-forwarded-proto": "https" }, "https://app.example:8443/auth/confirm"],
   ])("sets signup redirect for request headers %j", async (requestHeaders, url) => {
     mocks.headers.mockResolvedValue(new Headers(requestHeaders as Record<string, string>));
     mocks.signUp.mockResolvedValue({ data: { session: null }, error: null });
@@ -69,6 +76,10 @@ describe("email authentication", () => {
     { host: "app.example\\evil" }, { host: "app.example,evil.example" },
     { host: "app.example:invalid" }, { host: "app.example", "x-forwarded-proto": "javascript" },
     { host: "app.example", "x-forwarded-host": "" },
+    { host: ":443" }, { host: "[invalid]:443" }, { host: "app.example:65536" },
+    { host: "app.example%2Fpath" }, { host: "app.example%3Fquery" },
+    { host: "internal:3000", "x-forwarded-host": "user@evil.example:443" },
+    { host: "internal:3000", "x-forwarded-host": "app.example:443/path" },
   ])("rejects unsafe or missing signup origin: %j", async (requestHeaders) => {
     mocks.headers.mockResolvedValue(new Headers(requestHeaders as Record<string, string>));
     expect(await authenticate({}, form({ ...credentials, mode: "signup" }))).toHaveProperty("error");
